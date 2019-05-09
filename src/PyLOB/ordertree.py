@@ -4,9 +4,9 @@ Created on Mar 27, 2013
 @author: Ash Booth
 '''
 
-from BinTrees import RBTree
-from orderlist import OrderList
-from order import Order
+from BinTrees.rbtree import RBTree
+from PyLOB.orderlist import OrderList
+from PyLOB.order import Order
 
 class OrderTree(object):
     def __init__(self):

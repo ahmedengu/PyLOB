@@ -8,9 +8,9 @@ Created on Mar 28, 2013
 import sys
 import math
 from collections import deque
-from cStringIO import StringIO
+from io import StringIO
 
-from ordertree import OrderTree
+from PyLOB.ordertree import OrderTree
 
 class OrderBook(object):
     def __init__(self, tick_size = 0.0001):
@@ -33,13 +33,13 @@ class OrderBook(object):
     def processOrder(self, quote, fromData, verbose):
         orderType = quote['type']
         orderInBook = None
-        if fromData:
+        if 'timestamp' in quote:
             self.time = quote['timestamp']
         else:
             self.updateTime()
             quote['timestamp'] = self.time
         if quote['qty'] <= 0:
-            sys.exit('processLimitOrder() given order of qty <= 0')
+            raise Exception('processLimitOrder() given order of qty <= 0')
         if not fromData: self.nextQuoteID += 1
         if orderType=='market':
             trades = self.processMarketOrder(quote, verbose)
@@ -47,7 +47,7 @@ class OrderBook(object):
             quote['price'] = self.clipPrice(quote['price'])
             trades, orderInBook = self.processLimitOrder(quote, fromData, verbose)
         else:
-            sys.exit("processOrder() given neither 'market' nor 'limit'")
+            raise Exception("processOrder() given neither 'market' nor 'limit'")
         return trades, orderInBook
     
     def processOrderList(self, side, orderlist, 
@@ -137,7 +137,7 @@ class OrderBook(object):
                                                                  quote, verbose)
                 trades += newTrades
         else:
-            sys.exit('processMarketOrder() received neither "bid" nor "ask"')
+            raise Exception('processMarketOrder() received neither "bid" nor "ask"')
         return trades
     
     def processLimitOrder(self, quote, fromData, verbose):
@@ -181,7 +181,7 @@ class OrderBook(object):
                 self.asks.insertOrder(quote)
                 orderInBook = quote
         else:
-            sys.exit('processLimitOrder() given neither bid nor ask')
+            raise Exception('processLimitOrder() given neither bid nor ask')
         return trades, orderInBook
 
     def cancelOrder(self, side, idNum, time = None):
@@ -196,7 +196,7 @@ class OrderBook(object):
             if self.asks.orderExists(idNum):
                 self.asks.removeOrderById(idNum)
         else:
-            sys.exit('cancelOrder() given neither bid nor ask')
+            raise Exception('cancelOrder() given neither bid nor ask')
     
     def modifyOrder(self, idNum, orderUpdate, time=None):
         if time:
@@ -213,7 +213,7 @@ class OrderBook(object):
             if self.asks.orderExists(orderUpdate['idNum']):
                 self.asks.updateOrder(orderUpdate)
         else:
-            sys.exit('modifyOrder() given neither bid nor ask')
+            raise Exception('modifyOrder() given neither bid nor ask')
     
     def getVolumeAtPrice(self, side, price):
         price = self.clipPrice(price)
@@ -228,7 +228,7 @@ class OrderBook(object):
                 vol = self.asks.getPrice(price).volume
             return vol
         else:
-            sys.exit('getVolumeAtPrice() given neither bid nor ask')
+            raise Exception('getVolumeAtPrice() given neither bid nor ask')
     
     def getBestBid(self):
         return self.bids.maxPrice()
